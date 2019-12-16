@@ -84,7 +84,8 @@ def project_struct(ref_pdb, pdbfile, CAs_A, hNR):
     hNR_3D = hNR_3D * 10
     new_CAs = CAs_A + hNR_3D
 
-    rewrite_pdb(ref_pdb, new_CAs, pdbfile[:-4] + "_MIN.pdb")
+    # rewrite_pdb(ref_pdb, new_CAs, pdbfile[:-4] + "_MIN.pdb")
+    rewrite_pdb(ref_pdb, new_CAs, pdbfile)
 
 
 
@@ -123,26 +124,63 @@ def main(pdbfile, ref_pdb):
 
 
 if __name__ == '__main__':
-    main("3tfy_C_m7_a3.00_s1_1_3.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
-    main("3tfy_C_m7_a6.00_s1_1_6.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
-    main("3tfy_C_m7_a9.00_s1_1_9.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
-    main("3tfy_C_m7_a12.00_s1_1_12.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
-    main("3tfy_C_m7_a15.00_s1_1_15.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
-    main("3tfy_C_m7_a18.00_s1_1_18.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("3tfy_C_m7_a3.00_s1_1_3.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("3tfy_C_m7_a6.00_s1_1_6.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("3tfy_C_m7_a9.00_s1_1_9.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("3tfy_C_m7_a12.00_s1_1_12.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("3tfy_C_m7_a15.00_s1_1_15.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("3tfy_C_m7_a18.00_s1_1_18.00_ca.pdb", "3tfy_C_m7_a0.00_s1_0_0.00_ca.pdb")
+    #
+    # main("4u9v_B_m7_a3.00_s1_1_3.00_ca.pdb", "4u9v_B_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("4u9v_B_m7_a6.00_s1_1_6.00_ca.pdb", "4u9v_B_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("4u9v_B_m7_a9.00_s1_1_9.00_ca.pdb", "4u9v_B_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("4u9v_B_m7_a12.00_s1_1_12.00_ca.pdb", "4u9v_B_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("4u9v_B_m7_a15.00_s1_1_15.00_ca.pdb", "4u9v_B_m7_a0.00_s1_0_0.00_ca.pdb")
+    # main("4u9v_B_m7_a18.00_s1_1_18.00_ca.pdb", "4u9v_B_m7_a0.00_s1_0_0.00_ca.pdb")
 
-    for file in os.listdir('.'):
-        if file.endswith("MIN.pdb"):
-            from shutil import move
-            import subprocess
-            from distutils.spawn import find_executable
+    directory_list = list()
+    files_list = list()
+    paths_list = list()
+    for root, dirs, files in os.walk("../compnma_api/data/output/python_output", topdown=False):
+        for name in dirs:
+            if name == "dcd":
+                directory_list.append(os.path.join(root, name))
 
-            # pulchra_path = shutil.which("pulchra")
-            pulchra_path = find_executable('pulchra')
+    pdb_align_list = ['3tfy', '5isv', '4pv6', '2z0z', '1s7l', '2x7b', '3igr', '5k18',
+                      '2cns', '5hh0', '5wjd', '5icv', '4kvm', '4u9v']
 
-            # p = subprocess.call("{0} -p -q {1}".format(pulchra_path, file),
-            p = subprocess.call("{0} {1}".format(pulchra_path, file),
-                                shell=True,
-                                stderr=subprocess.PIPE)
-            if not p == 0:
-                raise Exception("PULCHRA BUGGED on " + file)
-            # move(file[:-4] + ".rebuilt.pdb", ".")
+    for root in directory_list:
+        # files_list.extend([x for x in os.listdir(dir) if os.path.isfile(x)])
+        for x in os.listdir(root):
+            if os.path.isfile(os.path.join(root, x)) and not x.startswith(".") \
+                    and x.split("_")[0] in pdb_align_list:
+                files_list.append(x)
+                paths_list.append(os.path.join(root, x))
+
+    # 5icv_A_m9_a0.00_s1_0_0.00_ca
+    for file in paths_list:
+        if not 'MIN' in file and file.endswith("ca.pdb"):
+            file_ref_array = file.split("_")
+            file_ref_array[-2] = "0.00"
+            file_ref_array[-3] = "0"
+            file_ref_array[-5] = "a0.00"
+            file_ref = "_".join(file_ref_array)
+            if not file == file_ref:
+                main(file, file_ref)
+
+    # for file in os.listdir('.'):
+    #     if file.endswith("MIN.pdb"):
+    #         from shutil import move
+    #         import subprocess
+    #         from distutils.spawn import find_executable
+    #
+    #         # pulchra_path = shutil.which("pulchra")
+    #         pulchra_path = find_executable('pulchra')
+    #
+    #         # p = subprocess.call("{0} -p -q {1}".format(pulchra_path, file),
+    #         p = subprocess.call("{0} {1}".format(pulchra_path, file),
+    #                             shell=True,
+    #                             stderr=subprocess.PIPE)
+    #         if not p == 0:
+    #             raise Exception("PULCHRA BUGGED on " + file)
+    #         # move(file[:-4] + ".rebuilt.pdb", ".")
